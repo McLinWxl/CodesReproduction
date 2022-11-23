@@ -1,4 +1,4 @@
-%% 产生数据
+ten%% 产生数据
 clc
 clear variables
 close all
