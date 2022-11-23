@@ -23,7 +23,7 @@ S_label=read_temp['S_label']
 R_est=read_temp['R_est']
 S_label1 = np.expand_dims(S_label, 2)
 [Sample,L,dim]=np.shape(S_est)
-nb_epoch=600
+nb_epoch=300
 batch_size=64
 
 optimizer=Adam(lr=0.001)
@@ -49,8 +49,8 @@ cnn_sigmoid.add(Convolution1D(1,3,activation='sigmoid',name="cnn_5", padding='sa
 cnn_sigmoid.compile(loss='mse', optimizer=optimizer)
 cnn_sigmoid.summary()
 
-history_cnn_sigmoid=cnn_sigmoid.fit(S_est, S_label1,epochs=nb_epoch, batch_size=batch_size,shuffle=True
-                ,verbose=2,validation_split=0.2)
+# history_cnn_sigmoid=cnn_sigmoid.fit(S_est, S_label1,epochs=nb_epoch, batch_size=batch_size,shuffle=True
+#                 ,verbose=2,validation_split=0.2)
 
 #
 cnn = Sequential() 
@@ -87,8 +87,8 @@ dnn_sigmoid.add(Dense(int(2*L/3), activation='sigmoid'))
 dnn_sigmoid.add(Dense(L, activation='sigmoid'))
 dnn_sigmoid.compile(loss='mse', optimizer=optimizer)
 dnn_sigmoid.summary()
-history_dnn_sigmoid=dnn_sigmoid.fit(S_abs, S_label,epochs=nb_epoch, batch_size=batch_size,
-                        shuffle=True,verbose=2,validation_split=0.2)
+# history_dnn_sigmoid=dnn_sigmoid.fit(S_abs, S_label,epochs=nb_epoch, batch_size=batch_size,
+#                         shuffle=True,verbose=2,validation_split=0.2)
 
 dnn_tanh = Sequential() 
 dnn_tanh.add(Dense(int(2*L/3), activation='tanh', input_dim=2*L))
@@ -121,8 +121,8 @@ model_liu1.add(Dense(int(2*c/3), activation='tanh', input_dim=c))
 model_liu1.add(Dense(int(4*c/9), activation='tanh'))
 model_liu1.add(Dense(t, activation='tanh'))
 model_liu1.compile(loss='mse', optimizer=optimizer)
-history_liu1=model_liu1.fit(Y_autocode_filter[:,:c], S_label[:,:t],epochs=nb_epoch
-                            , batch_size=batch_size,shuffle=True,verbose=2,validation_split=0.2)
+# history_liu1=model_liu1.fit(Y_autocode_filter[:,:c], S_label[:,:t],epochs=nb_epoch
+#                             , batch_size=batch_size,shuffle=True,verbose=2,validation_split=0.2)
 
 
 
@@ -131,8 +131,8 @@ model_liu2.add(Dense(int(2*c/3), activation='tanh', input_dim=c))
 model_liu2.add(Dense(int(4*c/9), activation='tanh'))
 model_liu2.add(Dense(t, activation='tanh'))
 model_liu2.compile(loss='mse', optimizer=optimizer)
-history_liu2=model_liu2.fit(Y_autocode_filter[:,c:2*c], S_label[:,t:2*t],epochs=nb_epoch
-                            , batch_size=batch_size,shuffle=True,verbose=2,validation_split=0.2)
+# history_liu2=model_liu2.fit(Y_autocode_filter[:,c:2*c], S_label[:,t:2*t],epochs=nb_epoch
+#                             , batch_size=batch_size,shuffle=True,verbose=2,validation_split=0.2)
 
    
 model_liu3 = Sequential() 
@@ -148,72 +148,68 @@ model_liu4.add(Dense(int(2*c/3), activation='tanh', input_dim=c))
 model_liu4.add(Dense(int(4*c/9), activation='tanh'))
 model_liu4.add(Dense(t, activation='tanh'))
 model_liu4.compile(loss='mse', optimizer=optimizer)
-history_liu4=model_liu4.fit(Y_autocode_filter[:,3*c:4*c], S_label[:,3*t:4*t],epochs=nb_epoch
-                            , batch_size=batch_size,shuffle=True,verbose=2,validation_split=0.2)
+# history_liu4=model_liu4.fit(Y_autocode_filter[:,3*c:4*c], S_label[:,3*t:4*t],epochs=nb_epoch
+#                             , batch_size=batch_size,shuffle=True,verbose=2,validation_split=0.2)
 
 model_liu5 = Sequential() 
 model_liu5.add(Dense(int(2*c/3), activation='tanh', input_dim=c))
 model_liu5.add(Dense(int(4*c/9), activation='tanh'))
 model_liu5.add(Dense(t, activation='tanh'))
 model_liu5.compile(loss='mse', optimizer=optimizer)
-history_liu5=model_liu5.fit(Y_autocode_filter[:,4*c:5*c], S_label[:,4*t:5*t],epochs=nb_epoch
-                            , batch_size=batch_size,shuffle=True,verbose=2,validation_split=0.2)
+# history_liu5=model_liu5.fit(Y_autocode_filter[:,4*c:5*c], S_label[:,4*t:5*t],epochs=nb_epoch
+#                             , batch_size=batch_size,shuffle=True,verbose=2,validation_split=0.2)
 
 model_liu6 = Sequential() 
 model_liu6.add(Dense(int(2*c/3), activation='tanh', input_dim=c))
 model_liu6.add(Dense(int(4*c/9), activation='tanh'))
 model_liu6.add(Dense(t, activation='tanh'))
 model_liu6.compile(loss='mse', optimizer=optimizer)
-history_liu6=model_liu6.fit(Y_autocode_filter[:,5*c:6*c], S_label[:,5*t:6*t],epochs=nb_epoch
-                            , batch_size=batch_size,shuffle=True,verbose=2,validation_split=0.2)
+# history_liu6=model_liu6.fit(Y_autocode_filter[:,5*c:6*c], S_label[:,5*t:6*t],epochs=nb_epoch
+#                             , batch_size=batch_size,shuffle=True,verbose=2,validation_split=0.2)
 
-
+#
 figsize = 8,5
 figure, ax = plt.subplots(figsize=figsize)
 plt.plot(np.array(history_cnn.history['val_loss'])*1000)
 plt.plot(np.array(history_cnn_tanh.history['val_loss'])*1000)
-plt.plot(np.array(history_cnn_sigmoid.history['val_loss'])*1000)
-plt.plot(np.array(history_liu1.history['val_loss'])*1000)
-plt.plot(np.array(history_liu2.history['val_loss'])*1000)
+# plt.plot(np.array(history_cnn_sigmoid.history['val_loss'])*1000)
+# plt.plot(np.array(history_liu1.history['val_loss'])*1000)
+# plt.plot(np.array(history_liu2.history['val_loss'])*1000)
 plt.plot(np.array(history_liu3.history['val_loss'])*1000)
-plt.plot(np.array(history_liu4.history['val_loss'])*1000)
-plt.plot(np.array(history_liu5.history['val_loss'])*1000)
-plt.plot(np.array(history_liu6.history['val_loss'])*1000)
+# plt.plot(np.array(history_liu4.history['val_loss'])*1000)
+# plt.plot(np.array(history_liu5.history['val_loss'])*1000)
+# plt.plot(np.array(history_liu6.history['val_loss'])*1000)
 plt.plot(np.array(history_dnn.history['val_loss'])*1000)
-plt.plot(np.array(history_dnn_tanh.history['val_loss'])*1000)
-plt.plot(np.array(history_dnn_sigmoid.history['val_loss'])*1000)
-plt.legend(['DCN+relu','DCN+tanh','DCN+sig','Method in [5]1','Method in [5]2','Method in [5]3','Method in [5]4','Method in [5]5','Method in [5]6','DNN+relu','DNN+tanh','DNN+sig'])
+# plt.plot(np.array(history_dnn_tanh.history['val_loss'])*1000)
+# plt.plot(np.array(history_dnn_sigmoid.history['val_loss'])*1000)
+plt.legend(['DCN+ReLU(proposed)','DCN+tanh','Method in [5]', 'DNN+ReLU'])
 font2 = {'family' : 'Times New Roman','weight' : 'normal','size': 13,}
 plt.xlabel('Epoch',font2)
 plt.ylabel('Test MSE(*1e$^-$$^3$)',font2)
 
-plt.ylim([8,20])
+plt.ylim([0,20])
 
 plt.show()
-#
-#
-#
+
 figsize = 8,5
 figure, ax = plt.subplots(figsize=figsize)
 plt.plot(np.array(history_cnn.history['loss'])*1000)
 plt.plot(np.array(history_cnn_tanh.history['loss'])*1000)
-plt.plot(np.array(history_cnn_sigmoid.history['loss'])*1000)
-plt.plot(np.array(history_liu1.history['loss'])*1000)
-plt.plot(np.array(history_liu2.history['loss'])*1000)
+# plt.plot(np.array(history_cnn_sigmoid.history['loss'])*1000)
+# plt.plot(np.array(history_liu1.history['loss'])*1000)
+# plt.plot(np.array(history_liu2.history['loss'])*1000)
 plt.plot(np.array(history_liu3.history['loss'])*1000)
-plt.plot(np.array(history_liu4.history['loss'])*1000)
-plt.plot(np.array(history_liu5.history['loss'])*1000)
-plt.plot(np.array(history_liu6.history['loss'])*1000)
+# plt.plot(np.array(history_liu4.history['loss'])*1000)
+# plt.plot(np.array(history_liu5.history['loss'])*1000)
+# plt.plot(np.array(history_liu6.history['loss'])*1000)
 plt.plot(np.array(history_dnn.history['loss'])*1000)
 plt.plot(np.array(history_dnn_tanh.history['loss'])*1000)
-plt.plot(np.array(history_dnn_sigmoid.history['loss'])*1000)
-plt.legend(['DCN+relu','DCN+tanh','DCN+sig','Method in [5]1','Method in [5]2','Method in [5]3','Method in [5]4','Method in [5]5','Method in [5]6','DNN+relu','DNN+tanh','DNN+sig'])
+# plt.plot(np.array(history_dnn_sigmoid.history['loss'])*1000)
+plt.legend(['DCN+ReLU(proposed)','DCN+tanh','Method in [5]', 'DNN+ReLU', 'DNN+tanh'])
 font2 = {'family' : 'Times New Roman','weight' : 'normal','size': 13,}
 plt.xlabel('Epoch',font2)
 
-plt.ylim([8,20])
+plt.ylim([0,20])
 plt.ylabel('Train MSE(*1e$^-$$^3$)',font2)
 
 plt.show()
-#
-#

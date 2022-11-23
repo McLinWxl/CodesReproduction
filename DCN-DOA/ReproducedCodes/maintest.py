@@ -1,6 +1,8 @@
 # %%
 import numpy as np
 import pandas as pd
+import csv
+import matplotlib.pyplot as plt
 import torch
 import torchvision.models as models
 import torch.nn as nn
@@ -11,10 +13,22 @@ import scipy.io
 import os
 
 # %%
-matlib = '/Users/mclinwong/GitHub/CodesReproduction/DCN-DOA/ReproducedCodes/matlib'
+myseed = 3407  # set a random seed for reproducibility
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
+np.random.seed(myseed)
+torch.manual_seed(myseed)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(myseed)
+
+# %%
+matlib = '/Users/mclinwong/GitHub/CodesReproduction/DCN-DOA/ReproducedCodes/matlib/11_22'
+figure_savepath = '/Users/mclinwong/GitHub/CodesReproduction/DCN-DOA/ReproducedCodes/Figures/'
 device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
-num_epoch = 3
+num_epoch = 10
 batch_size = 64
+# load model
+# autoencoder = torch.load('/Users/mclinwong/GitHub/CodesReproduction/DCN-DOA/ReproducedCodes/matlib/11_22/autoencoder.h5')
 
 # %%
 datapath = os.path.join(matlib, 'data2_trainlow.mat')
@@ -24,9 +38,10 @@ S_abs = read_data['S_abs']
 S_label = read_data['S_label']
 R_est = read_data['R_est']
 S_label1 = np.expand_dims(S_label, 2)
+[Sample, L, dim] = np.shape(S_est)
 S_est = S_est.transpose(0, 2, 1)
 S_label1 = S_label1.transpose(0, 2, 1)
-[Sample, L, dim] = np.shape(S_est)
+
 print(f'S_est.shape: {S_est.shape}')
 print(f'S_label.shape: {S_label.shape}')
 print(f'S_label1.shape: {S_label1.shape}')
@@ -45,135 +60,23 @@ class MakeDataset(Dataset):
         return data, label
 
 # %%
-S_est_train, S_est_test, S_label1_train, S_label1_test = train_test_split(S_est, S_label1, test_size=0.2, random_state=42)
+S_est_train, S_est_test, S_label1_train, S_label1_test = train_test_split(S_est, S_label1, test_size=0.2)
+S_abs_train, S_abs_test, S_label_train, S_label_test = train_test_split(S_abs, S_label, test_size=0.2)
 print(f'S_est_train.shape: {S_est_train.shape}, S_est_test.shape: {S_est_test.shape}')
 print(f'S_label1_train.shape: {S_label1_train.shape}, S_label1_test.shape: {S_label1_test.shape}')
 train_set = MakeDataset(S_est_train, S_label1_train)
+train_set_fcn = MakeDataset(S_abs_train, S_label_train)
 valid_set = MakeDataset(S_est_test, S_label1_test)
+valid_set_fcn = MakeDataset(S_abs_test, S_label_test)
 train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
 valid_loader = DataLoader(valid_set, batch_size=batch_size, shuffle=True)
-
-
-# %%
-
-#define the dense neural network
-
-def _densenet(arch, growth_rate, block_config, num_init_features, pretrained, progress,
-              **kwargs):
-    model = DenseNet(growth_rate, block_config, num_init_features, **kwargs)
-    if pretrained:
-        _load_state_dict(model, model_urls[arch], progress)
-    return model
-
-class DenseNet(nn.Module):
-    def __init__(self, growth_rate=32, block_config=(6, 12, 24, 16),
-                 num_init_features=64, bn_size=4, drop_rate=0, num_classes=1000, memory_efficient=False):
- 
-        super(DenseNet, self).__init__()
- 
-        # 首层卷积层
-        self.features = nn.Sequential(OrderedDict([
-            ('conv0', nn.Conv2d(3, num_init_features, kernel_size=7, stride=2,
-                                padding=3, bias=False)),
-            ('norm0', nn.BatchNorm2d(num_init_features)),
-            ('relu0', nn.ReLU(inplace=True)),
-            ('pool0', nn.MaxPool2d(kernel_size=3, stride=2, padding=1)),
-        ]))
- 
-        # 构建DenseBlock
-        num_features = num_init_features
-        for i, num_layers in enumerate(block_config): #构建4个DenseBlock
-            block = _DenseBlock(
-                num_layers=num_layers,
-                num_input_features=num_features,
-                bn_size=bn_size,
-                growth_rate=growth_rate,
-                drop_rate=drop_rate,
-                memory_efficient=memory_efficient
-            )
-            self.features.add_module('denseblock%d' % (i + 1), block)
-            num_features = num_features + num_layers * growth_rate
-            if i != len(block_config) - 1:
-                trans = _Transition(num_input_features=num_features,  #每个DenseBlock后跟一个TransitionLayer
-                                    num_output_features=num_features // 2)
-                self.features.add_module('transition%d' % (i + 1), trans)
-                num_features = num_features // 2
- 
-        # Final batch norm
-        self.features.add_module('norm5', nn.BatchNorm2d(num_features))
- 
-        # Linear layer
-        self.classifier = nn.Linear(num_features, num_classes) #构建分类器
- 
-        # Official init from torch repo.
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight)
-            elif isinstance(m, nn.BatchNorm2d):
-                nn.init.constant_(m.weight, 1)
-                nn.init.constant_(m.bias, 0)
-            elif isinstance(m, nn.Linear):
-                nn.init.constant_(m.bias, 0)
- 
-    def forward(self, x):
-        features = self.features(x)
-        out = F.relu(features, inplace=True)
-        out = F.adaptive_avg_pool2d(out, (1, 1))
-        out = torch.flatten(out, 1)
-        out = self.classifier(out)
-        return out
-class _DenseBlock(nn.Module):
-    def __init__(self, num_layers, num_input_features, bn_size, growth_rate, drop_rate, memory_efficient=False):
-        super(_DenseBlock, self).__init__()
-        for i in range(num_layers):
-            layer = _DenseLayer(
-                num_input_features + i * growth_rate,
-                growth_rate=growth_rate,
-                bn_size=bn_size,
-                drop_rate=drop_rate,
-                memory_efficient=memory_efficient,
-            )
-            self.add_module('denselayer%d' % (i + 1), layer)
- 
-    def forward(self, init_features):
-        features = [init_features]
-        for name, layer in self.named_children():
-            new_features = layer(*features)
-            features.append(new_features)
-        return torch.cat(features, 1)
-class _DenseLayer(nn.Module):
-    def __init__(self, num_input_features, growth_rate, bn_size, drop_rate, memory_efficient=False):
-        super(_DenseLayer, self).__init__()
-        self.add_module('norm1', nn.BatchNorm2d(num_input_features))
-        self.add_module('relu1', nn.ReLU(inplace=True))
-        self.add_module('conv1', nn.Conv2d(num_input_features, bn_size *
-                                           growth_rate, kernel_size=1, stride=1, bias=False))
-        self.add_module('norm2', nn.BatchNorm2d(bn_size * growth_rate))
-        self.add_module('relu2', nn.ReLU(inplace=True))
-        self.add_module('conv2', nn.Conv2d(bn_size * growth_rate, growth_rate,
-                                           kernel_size=3, stride=1, padding=1, bias=False))
-        self.drop_rate = float(drop_rate)
-        self.memory_efficient = memory_efficient
- 
-    def bottleneck_function(self, *inputs):
-        concated_features = torch.cat(inputs, 1)
-        bottleneck_output = self.conv1(self.relu1(self.norm1(concated_features)))
-        return bottleneck_output
- 
-    def forward(self, *prev_features):
-        if self.memory_efficient and any(prev_feature.requires_grad for prev_feature in prev_features):
-            bottleneck_output = self.bottleneck_function(*prev_features)
-        else:
-            if len(prev_features) == 1:
-                bottleneck_output = self.conv1(self.relu1(self.norm1(prev_features[0])))
-            else:
-                bottleneck_output = self.bottleneck_function(*prev_features)
-        new_features = self.conv2(self.relu2(self.norm2(bottleneck_output)))
-        if self.drop_rate > 0:
-            new_features = F.dropout(new_features, p=self.drop_rate, training=self.training)
-        return new_features
+train_loader_fcn = DataLoader(train_set_fcn, batch_size=batch_size, shuffle=True)
+valid_loader_fcn = DataLoader(valid_set_fcn, batch_size=batch_size, shuffle=True)
+# print dimision of dataset
+print(f'train_set: {len(train_set)}, valid_set: {len(valid_set)}')
 
 # %%
+# Shape of Conv1D: (batch_size, channels, seq_len)
 class CNN_tanh(nn.Module):
     def __init__(self):
         super(CNN_tanh, self).__init__()
@@ -222,16 +125,66 @@ class CNN_ReLu(nn.Module):
         return x
 
 # %%
-#class DNN(nn.Module):
-    
-     
-    
+#L=120, 
+#in_num = 2*L = 240
+#out1_num = int(2*L/3) = 80
+#out2_num = int(4*L/9) = 53
+#out3_num = int(2*L/3) = 80
+class DNN_ReLU(nn.Module):
+    def __init__(self):
+        super(DNN_ReLU, self).__init__()
+        self.fc1 = nn.Linear(240, 80)
+        self.fc2 = nn.Linear(80, 53)
+        self.fc3 = nn.Linear(53, 80)
+        self.fc4 = nn.Linear(80, 120)
+        self.relu = nn.ReLU()
+    def forward(self, x):
+        x = x.view(-1, 2)
+        x = self.relu(self.fc1(x))
+        x = self.relu(self.fc2(x))
+        x = self.relu(self.fc3(x))
+        x = self.relu(self.fc4(x))
+        return x
+
+# %%
+class DNN_Sigmoid(nn.Module):
+    def __init__(self):
+        super(DNN_Sigmoid, self).__init__()
+        self.fc1 = nn.Linear(2*L, int(2*L/3))
+        self.fc2 = nn.Linear(int(2*L/3), int(4*L/9))
+        self.fc3 = nn.Linear(int(4*L/9), int(2*L/3))
+        self.fc4 = nn.Linear(int(2*L/3), L)
+        self.sigmoid = nn.Sigmoid()
+    def forward(self, x):
+        x = x.view(-1, 2)
+        x = self.sigmoid(self.fc1(x))
+        x = self.sigmoid(self.fc2(x))
+        x = self.sigmoid(self.fc3(x))
+        x = self.sigmoid(self.fc4(x))
+        return x
+
+# %%
+class DNN_Tanh(nn.Module):
+    def __init__(self):
+        super(DNN_Tanh, self).__init__()
+        self.fc1 = nn.Linear(2*L, int(2*L/3))
+        self.fc2 = nn.Linear(int(2*L/3), int(4*L/9))
+        self.fc3 = nn.Linear(int(4*L/9), int(2*L/3))
+        self.fc4 = nn.Linear(int(2*L/3), L)
+        self.tanh = nn.Tanh()
+    def forward(self, x):
+        x = x.view(-1, 2)
+        x = self.tanh(self.fc1(x))
+        x = self.tanh(self.fc2(x))
+        x = self.tanh(self.fc3(x))
+        x = self.tanh(self.fc4(x))
+        return x
 
 # %% [markdown]
 # # TRAIN
 
 # %%
-def train(model, train_loader, valid_loader, optimizer, epoch):
+def train(model, train_loader, valid_loader, optimizer, criterion, epoch, name):
  
     train_loss_list = []
     valid_loss_list = []
@@ -245,6 +198,7 @@ def train(model, train_loader, valid_loader, optimizer, epoch):
             x, y = batch
             x = x.to('cpu').float()
             x = x.to(device)
+            y = y.to('cpu').float()
             y = y.to(device)
             output = model(x)
             loss = criterion(output, y)
@@ -261,7 +215,9 @@ def train(model, train_loader, valid_loader, optimizer, epoch):
         
         for batch in tqdm(valid_loader):
             x, y = batch
+            x = x.to('cpu').float()
             x = x.to(device)
+            y = y.to('cpu').float()
             y = y.to(device)
             with torch.no_grad():
                 output = model(x)
@@ -272,13 +228,61 @@ def train(model, train_loader, valid_loader, optimizer, epoch):
         valid_loss_list.append(valid_loss)
         print('Epoch: {}, Valid Loss: {:.4f}'.format(epoch, valid_loss))
     
+    #save loss as csv
+    id = np.arange(0, num_epoch)
+    datafarme = pd.DataFrame({'id':id ,'train_loss':train_loss_list, 'valid_loss':valid_loss_list})
+    datafarme.to_csv(figure_savepath + str(name) +'loss.csv', index=False, sep=',')
     return train_loss_list, valid_loss_list
 
 # %%
-model = CNN_tanh().to(device)
+model = CNN_ReLu()
+model = model.to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 criterion = nn.MSELoss()
+train_loss_list_cnn_ReLu, valid_loss_list_cnn_ReLu = train(model, train_loader, valid_loader, optimizer, criterion, num_epoch, name = 'cnnrelu')
 
-(train_loss_cnn_tanh, valid_loss_cnn_tanh) = train(model, train_loader, valid_loader, optimizer, num_epoch)
+# %%
+model = DNN_ReLU()
+model = model.to(device)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+criterion = nn.MSELoss()
+train_loss_list_dnn_ReLu, valid_loss_list_dnn_ReLu = train(model, train_loader_fcn, valid_loader_fcn, optimizer, criterion, num_epoch, name = 'dnnrelu')
+
+# %%
+model = CNN_tanh()
+model = model.to(device)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+criterion = nn.MSELoss()
+train_loss_list_cnn_tanh, valid_loss_list_cnn_tanh = train(model, train_loader, valid_loader, optimizer, criterion, num_epoch, name = 'cnntanh')
+
+# %%
+with plt.style.context('science', 'ieee'):
+    plt.rcParams['figure.dpi'] = 300
+    plt.rcParams['savefig.dpi'] = 300
+    plt.ylim(8e-3, 20e-3)
+    plt.plot(train_loss_list_cnn_ReLu, label='DCN ReLU')
+    plt.plot(train_loss_list_cnn_tanh, label='DCN Tanh')
+    plt.plot(train_loss_list_dnn_ReLu, label='DNN ReLu')
+    plt.xlabel('Epoch')
+    plt.ylabel('MSE Loss')
+    plt.legend()
+    #save figure
+    plt.savefig(figure_savepath + 'Train Loss_compare.png')
+    plt.show()
+
+# %%
+with plt.style.context('science', 'ieee'):
+    plt.rcParams['figure.dpi'] = 300
+    plt.rcParams['savefig.dpi'] = 300
+    plt.ylim(0, 20e-3)
+    plt.plot(valid_loss_list_cnn_ReLu, label='DCN ReLU')
+    plt.plot(valid_loss_list_cnn_tanh, label='DCN Tanh')
+    plt.plot(valid_loss_list_dnn_ReLu, label='DNN ReLu')
+    plt.xlabel('Epoch')
+    plt.ylabel('MSE Loss * 1e-3')
+    plt.legend()
+    #save figure
+    plt.savefig(figure_savepath + 'Valid Loss_compare.png')
+    plt.show()
 
 
