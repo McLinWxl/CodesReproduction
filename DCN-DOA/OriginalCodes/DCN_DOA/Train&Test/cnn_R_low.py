@@ -55,7 +55,7 @@ cnn_low.save('/Users/mclinwong/GitHub/CodesReproduction/DCN-DOA/Data/h5/cnn_low.
 P=6
 I=120
 t=int(np.floor(I/P))
-autoencoder= keras.models.load_model( 'DCN-DOA/OriginalCodes/code/autoencoder.h5')
+autoencoder= keras.models.load_model( '/Users/mclinwong/GitHub/CodesReproduction/DCN-DOA/Data/h5/autoencoder.h5')
 optimizer=rmsprop(lr=0.001)
 
 normalizer = preprocessing.Normalizer().fit(R_est)
