@@ -1,6 +1,6 @@
 function [r_doa1,Rx]=feature_extract_R(X) 
 %clc; clear all;X=randn(5,5);
-[M,N]=size(X);
+[M,N]=size(X); % M=8,N=len(DOA_train)=256
 Rx=X*X'/N;%计算阵列协方差矩阵 时域协方差矩阵
 r_doa=zeros(1,M*(M-1)/2);
 %%  协方差矩阵上三角矩阵
@@ -18,7 +18,7 @@ end
 % 
 % r_doa=r_doa-min(real(r_doa))-1j*min(imag(r_doa));
 r_doa=r_doa/norm(r_doa);
-r_doa1=1*[real(r_doa) imag(r_doa)];
+r_doa1=1*[real(r_doa) imag(r_doa)];  %将虚部向右连接
 % temp=H'*vec(Rx);
 % SS=temp/norm(temp);
 % SS1=1*[real(SS) imag(SS)];

@@ -55,20 +55,23 @@ def findpeaks(x, K,DOA):
 #    return DOA[ind],p
     return p,DOA[ind]
 
-autoencoder= keras.models.load_model('autoencoder.h5')
+h5path = '/Users/mclinwong/GitHub/CodesReproduction/DCN-DOA/Data/h5/'
+matpath = '/Users/mclinwong/GitHub/CodesReproduction/DCN-DOA/Data/matlib/'
+
+autoencoder = keras.models.load_model(h5path + '/autoencoder.h5')
 #
-model_low_liu1= keras.models.load_model( 'model_low_liu1.h5')
-model_low_liu2= keras.models.load_model( 'model_low_liu2.h5')
-model_low_liu3= keras.models.load_model(  'model_low_liu3.h5')
-model_low_liu4= keras.models.load_model( 'model_low_liu4.h5')
-model_low_liu5= keras.models.load_model( 'model_low_liu5.h5')
-model_low_liu6= keras.models.load_model( 'model_low_liu6.h5')
-cnn_low= keras.models.load_model( 'cnn_low.h5')
+model_low_liu1 = keras.models.load_model(h5path + 'model_low_liu1.h5')
+model_low_liu2 = keras.models.load_model(h5path + 'model_low_liu2.h5')
+model_low_liu3 = keras.models.load_model(h5path + 'model_low_liu3.h5')
+model_low_liu4 = keras.models.load_model(h5path + 'model_low_liu4.h5')
+model_low_liu5 = keras.models.load_model(h5path + 'model_low_liu5.h5')
+model_low_liu6 = keras.models.load_model(h5path + 'model_low_liu6.h5')
+cnn_low= keras.models.load_model(h5path + 'cnn_low.h5')
 
 #
 
 #
-read_temp=scipy.io.loadmat('data2_angle.mat')
+read_temp=scipy.io.loadmat(matpath + 'data2_angle.mat')
 S_est=read_temp['S_est']
 S_label=read_temp['S_label']
 R_est=read_temp['R_est']

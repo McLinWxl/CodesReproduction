@@ -71,7 +71,7 @@ plot(theta,(S_label(i,:)'))
 grid on
 plot(theta,(gamma(i,:)'))
 plot(theta,(gamma_R(i,:)'))
-legend('A','true','S','R')
+legend('Data2Train','Label','SBAC','SBAC_R')
 
 
 save('data2_testall.mat','R_est','DOA_train',...

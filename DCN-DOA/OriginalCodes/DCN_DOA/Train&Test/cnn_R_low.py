@@ -24,7 +24,7 @@ from keras.layers import Convolution1D
 from datetime import datetime
 from tensorflow.keras.optimizers import RMSprop as rmsprop
 from sklearn import preprocessing 
-read_temp=scipy.io.loadmat('DCN-DOA/OriginalCodes/code/data2_trainlow.mat')
+read_temp=scipy.io.loadmat('/Users/mclinwong/GitHub/CodesReproduction/DCN-DOA/Data/matlib/data2_trainlow.mat')
 S_est=read_temp['S_est']
 S_abs=read_temp['S_abs']
 S_label=read_temp['S_label']
