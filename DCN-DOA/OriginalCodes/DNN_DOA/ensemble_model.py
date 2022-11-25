@@ -1,5 +1,5 @@
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import numpy as np
 
 class Ensemble_Model():
@@ -14,9 +14,9 @@ class Ensemble_Model():
 
         # load nn parameter files
         if reconstruct_nn_flag == False:
-            var_dict_nn = np.load(model_path_nn).item()
+            var_dict_nn = np.load(model_path_nn, allow_pickle=True).item()
         if train_sf_flag == False:
-            var_dict_sf = np.load(model_path_sf).item()
+            var_dict_sf = np.load(model_path_sf, allow_pickle=True).item()
             if train_ss_flag == False:
                 var_dict_ss = np.load(model_path_ss).item()
 

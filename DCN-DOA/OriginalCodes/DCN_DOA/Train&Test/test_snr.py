@@ -55,19 +55,23 @@ def findpeaks(x, K,DOA):
 
 
 
-autoencoder= keras.models.load_model( 'autoencoder.h5')
 
-model_low_liu1= keras.models.load_model( 'model_low_liu1.h5')
-model_low_liu2= keras.models.load_model( 'model_low_liu2.h5')
-model_low_liu3= keras.models.load_model(  'model_low_liu3.h5')
-model_low_liu4= keras.models.load_model( 'model_low_liu4.h5')
-model_low_liu5= keras.models.load_model( 'model_low_liu5.h5')
-model_low_liu6= keras.models.load_model( 'model_low_liu6.h5')
-cnn_low= keras.models.load_model( 'cnn_low.h5')
+h5path = '/Users/mclinwong/GitHub/CodesReproduction/DCN-DOA/Data/h5/'
+matpath = '/Users/mclinwong/GitHub/CodesReproduction/DCN-DOA/Data/matlib/'
+
+autoencoder = keras.models.load_model(h5path + '/autoencoder.h5')
+#
+model_low_liu1 = keras.models.load_model(h5path + 'model_low_liu1.h5')
+model_low_liu2 = keras.models.load_model(h5path + 'model_low_liu2.h5')
+model_low_liu3 = keras.models.load_model(h5path + 'model_low_liu3.h5')
+model_low_liu4 = keras.models.load_model(h5path + 'model_low_liu4.h5')
+model_low_liu5 = keras.models.load_model(h5path + 'model_low_liu5.h5')
+model_low_liu6 = keras.models.load_model(h5path + 'model_low_liu6.h5')
+cnn_low= keras.models.load_model(h5path + 'cnn_low.h5')
 
 
 
-read_temp=scipy.io.loadmat('data2_snr.mat')
+read_temp=scipy.io.loadmat(matpath + 'data2_snr.mat')
 T_SBC_R=read_temp['T_SBC_R']
 T_SBC=read_temp['T_SBC']
 S_est=read_temp['S_est']
@@ -130,7 +134,7 @@ for j in range(S):
     for i in range(r2):
         T=R_est[i,:,j].reshape(1,c)
         
-        start_time = time.clock()
+        start_time = time.perf_counter()
         Y_autocode_T =autoencoder.predict(T)
         Y_autocode_T[:,0*c:1*c]=normalizer.transform(Y_autocode_T[:,0*c:1*c])
         Y_autocode_T[:,1*c:2*c]=normalizer.transform(Y_autocode_T[:,1*c:2*c])
@@ -149,7 +153,7 @@ for j in range(S):
                           ,DF_T_low_liu4,DF_T_low_liu5,DF_T_low_liu6]
         DF_T_low_liu=np.array(DF_T_low_liu)
         DF_T_low_liu=np.reshape(DF_T_low_liu,I)
-        stop_time = time.clock()
+        stop_time = time.perf_counter()
         T_low_liu[i,j]=stop_time-start_time
         
         
@@ -157,11 +161,11 @@ for j in range(S):
 
         
         
-        start_time = time.clock()        
+        start_time = time.perf_counter()       
         DF_T_cnn_low=cnn_low.predict(S_est[i,:,:,j].reshape(1,I,2))
         DF_T_cnn_low=np.array(DF_T_cnn_low)    
         DF_T_cnn_low=np.reshape(DF_T_cnn_low,I)
-        stop_time = time.clock()
+        stop_time = time.perf_counter()
         T_low_cnn[i,j]=stop_time-start_time
 
 
