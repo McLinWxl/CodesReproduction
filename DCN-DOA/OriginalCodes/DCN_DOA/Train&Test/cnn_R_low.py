@@ -24,6 +24,7 @@ from keras.layers import Convolution1D
 from datetime import datetime
 from tensorflow.keras.optimizers import RMSprop as rmsprop
 from sklearn import preprocessing 
+h5path = '/Users/mclinwong/GitHub/CodesReproduction/DCN-DOA/Data/h5/'
 read_temp=scipy.io.loadmat('/Users/mclinwong/GitHub/CodesReproduction/DCN-DOA/Data/matlib/data2_trainlow.mat')
 S_est=read_temp['S_est']
 S_abs=read_temp['S_abs']
@@ -31,7 +32,7 @@ S_label=read_temp['S_label']
 R_est=read_temp['R_est']
 S_label1 = np.expand_dims(S_label, 2)
 [Sample,L,dim]=np.shape(S_est)
-nb_epoch=3
+nb_epoch=10
 batch_size=64
 
 #
@@ -44,17 +45,18 @@ cnn_low.add(Convolution1D(1,3,activation='relu',name="cnn_5", padding='same'))
 cnn_low.compile(loss='mse', optimizer='adam')
 cnn_low.summary()
 start_time = datetime.now()
-history_cnn_low=cnn_low.fit(S_est, S_label1,epochs=nb_epoch, batch_size=batch_size,shuffle=True
+history_cnn_low=cnn_low.fit(S_est, S_label1,epochs=300, batch_size=batch_size,shuffle=True
                 ,verbose=2,validation_split=0.99)
 stop_time = datetime.now()
 time_cnn_low=stop_time-start_time
-cnn_low.save('/Users/mclinwong/GitHub/CodesReproduction/DCN-DOA/Data/h5/cnn_low.h5')
+cnn_low.save(h5path + 'cnn_low.h5')
 
 ##
 [r2,c]=np.shape(R_est)
 P=6
 I=120
 t=int(np.floor(I/P))
+
 autoencoder= keras.models.load_model( '/Users/mclinwong/GitHub/CodesReproduction/DCN-DOA/Data/h5/autoencoder.h5')
 optimizer=rmsprop(lr=0.001)
 
@@ -133,10 +135,10 @@ history_liu6=model_low_liu6.fit(Y_autocode_filter[:,5*c:6*c], S_label[:,5*t:6*t]
                             ,shuffle=True,verbose=2,validation_split=0.99)
 stop_time = datetime.now()
 time_liu6=stop_time-start_time
-model_low_liu1.save('DCN-DOA/OriginalCodes/h5/model_low_liu1.h5')
-model_low_liu2.save('DCN-DOA/OriginalCodes/h5/model_low_liu2.h5')
-model_low_liu3.save('DCN-DOA/OriginalCodes/h5/model_low_liu3.h5')
-model_low_liu4.save('DCN-DOA/OriginalCodes/h5/model_low_liu4.h5')
-model_low_liu5.save('DCN-DOA/OriginalCodes/h5/model_low_liu5.h5')
-model_low_liu6.save('DCN-DOA/OriginalCodes/h5/model_low_liu6.h5')
+model_low_liu1.save(h5path + 'model_low_liu1.h5')
+model_low_liu2.save(h5path + 'model_low_liu2.h5')
+model_low_liu3.save(h5path + 'model_low_liu3.h5')
+model_low_liu4.save(h5path + 'model_low_liu4.h5')
+model_low_liu5.save(h5path + 'model_low_liu5.h5')
+model_low_liu6.save(h5path + 'model_low_liu6.h5')
 

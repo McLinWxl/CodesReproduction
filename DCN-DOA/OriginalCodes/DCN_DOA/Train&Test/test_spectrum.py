@@ -29,8 +29,8 @@ cnn_low= keras.models.load_model(h5path + 'cnn_low.h5')
 
 
 read_temp=scipy.io.loadmat(matpath + 'data2_test.mat')
-K=3
-k=1
+K=2
+k=3
 
 S_est=read_temp['S_est']
 S_label=read_temp['S_label']
