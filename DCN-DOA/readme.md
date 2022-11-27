@@ -36,6 +36,8 @@ DOA估计可以看作是稀疏线性逆问题在压缩感知中的应用，因�
 
 ## 问题建模
 
+![1669558692264](image/readme/1669558692264.png)
+
 ![](https://alidocs.oss-cn-zhangjiakou.aliyuncs.com/res/7jP2lRj7REG6l8g5/img/fc05fff4-9b91-4f51-b613-1a82eee54099.png)
 
 ## 实验验证
