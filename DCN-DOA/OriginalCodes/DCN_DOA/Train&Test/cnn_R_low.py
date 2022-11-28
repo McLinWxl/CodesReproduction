@@ -32,7 +32,7 @@ S_label=read_temp['S_label']
 R_est=read_temp['R_est']
 S_label1 = np.expand_dims(S_label, 2)
 [Sample,L,dim]=np.shape(S_est)
-nb_epoch=10
+nb_epoch=600
 batch_size=64
 
 #
@@ -45,12 +45,13 @@ cnn_low.add(Convolution1D(1,3,activation='relu',name="cnn_5", padding='same'))
 cnn_low.compile(loss='mse', optimizer='adam')
 cnn_low.summary()
 start_time = datetime.now()
-history_cnn_low=cnn_low.fit(S_est, S_label1,epochs=300, batch_size=batch_size,shuffle=True
+history_cnn_low=cnn_low.fit(S_est, S_label1,epochs=nb_epoch, batch_size=batch_size,shuffle=True
                 ,verbose=2,validation_split=0.99)
 stop_time = datetime.now()
 time_cnn_low=stop_time-start_time
 cnn_low.save(h5path + 'cnn_low.h5')
 
+raise('FinishError')
 ##
 [r2,c]=np.shape(R_est)
 P=6
