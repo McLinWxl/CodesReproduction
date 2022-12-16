@@ -3,6 +3,9 @@ from InitData import *
 batch_size = 64
 num_epochs = 3
 learning_rate = 0.001
+
+
+K = 2
 L = 120
 
 device = 'mps'
@@ -14,5 +17,3 @@ pthpath = '/Users/mclinwong/GitHub/CodesReproduction/DCN-DOA/Remake/Data/model_p
 resultpath = '/Users/mclinwong/GitHub/CodesReproduction/DCN-DOA/Remake/Data/result_path/'
 #library for saving the figures
 figpath = '/Users/mclinwong/GitHub/CodesReproduction/DCN-DOA/Remake/Data/fig_path/'
-
-models = ['CNN_ReLU', 'DNN_ReLU']

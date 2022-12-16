@@ -33,7 +33,6 @@ class LoadData():
         S_label = read_data['S_label']
         R_est = read_data['R_est']
         S_label1 = np.expand_dims(S_label, 2)
-        global L
         [Sample, L, dim] = np.shape(S_est)
         S_est = S_est.transpose(0, 2, 1)
         S_label1 = S_label1.transpose(0, 2, 1)
@@ -48,14 +47,13 @@ class LoadData():
         read_temp=scipy.io.loadmat(matlib + 'data2_test.mat')
         S_est=read_temp['S_est']
         S_est = S_est.transpose(0, 2, 1)
-        global r2, K, I
         [r2,K,I] = np.shape(S_est)
         S_real = np.zeros((r2, 1, I))
         S_imag = np.zeros((r2, 1, I))
         S_real[:,0,:] = S_est[:,0,:]
         S_imag[:,0,:] = S_est[:,1,:]
         S_abs = np.append(S_real, S_imag, axis=2)
-        # S_abs = np.squeeze(S_abs)
+        S_abs = np.squeeze(S_abs)
         S_label=read_temp['S_label']
         R_est=read_temp['R_est']
         DOA_train=read_temp['DOA_train']
@@ -66,10 +64,10 @@ class LoadData():
         normalizer = preprocessing.Normalizer().fit(R_est)
         [r2,c]=np.shape(R_est)
         [r2,I]=np.shape(S_label)
+        print('----------Shape of spectrum data:----------')
         print(f'r2: {r2}, I: {I}, c: {c}')
-        print(np.shape(S_est))
-        print(np.shape(S_real))
-        print(np.shape(S_abs))
+        print(f'S_est.shape: {np.shape(S_est)}')
+        print(f'S_abs.shape: {np.shape(S_abs)}')
         return S_est, S_abs, S_label, R_est, S_label1, DOA_train, theta, gamma, gamma_R, normalizer
     def data_loader(S_est, S_abs, S_label, S_label1, batch_size):
         S_est_train, S_est_test, S_label1_train, S_label1_test = train_test_split(S_est, S_label1, test_size=0.2)

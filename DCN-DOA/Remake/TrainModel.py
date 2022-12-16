@@ -27,13 +27,14 @@ train_loader, valid_loader, train_loader_fcn, valid_loader_fcn = LoadData.data_l
 CNN_ReLU = CNN(nn.ReLU).to(device)
 DNN_ReLU = DNN(nn.ReLU).to(device)
 
+#TODO: Add more networks if needed
 #Fully-Connected Network
 DNN_train, DNN_valid = train_save(train_loader_fcn, valid_loader_fcn, DNN_ReLU=DNN_ReLU)
-
 #Convolutional Neural Network
 CNN_train, CNN_valid = train_save(train_loader, valid_loader, CNN_ReLU=CNN_ReLU)
 
 #plot training and validation loss
-plot_loss('Train', DNN_ReLU=models[1], CNN_ReLU=models[0])
-plot_loss('Valid', DNN_ReLU=models[1], CNN_ReLU=models[0])
+plot_loss('Train', DNN_ReLU=DNN_train, CNN_ReLU=DNN_valid)
+plot_loss('Valid', DNN_ReLU=CNN_train, CNN_ReLU=CNN_valid)
+
 

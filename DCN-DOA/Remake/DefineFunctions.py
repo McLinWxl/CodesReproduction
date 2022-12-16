@@ -12,6 +12,7 @@ import scipy.io
 import os
 import heapq
 from ultis import *
+from InitData import *
 
 def train(model,name , train_loader, valid_loader, epoch):
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -64,16 +65,18 @@ def train(model,name , train_loader, valid_loader, epoch):
 def Test(model, inputx, flag=1):
     model = model.to(device)
     model.eval()
+    global r2
+    r2 = np.shape(inputx)[0]
     ls = []
     for i in range(r2):
         with torch.no_grad():
             if flag == 0:
-                x = np.zeros((K, I))
+                x = np.zeros((K, L))
                 x[:, :] = inputx[i, :, :]
                 #atttntion: the input of the model should be a tensor which is in the shape of (batch_size, channel, length)
-                x = torch.from_numpy(x.reshape(1, K, I)).float().to('cpu')
+                x = torch.from_numpy(x.reshape(1, K, L)).float().to('cpu')
             elif flag == 1:
-                x = np.zeros(K*I)
+                x = np.zeros(K*L)
                 x[:] = inputx[i, :]
                 x = torch.from_numpy(x.reshape(1, -1)).float().to('cpu')
             x = x.to(device)
@@ -135,7 +138,20 @@ def DOAPredict(predict, height = 0.1, nodetect = 0):
 
     return peak-60
 
-def load_model(*args):
-    for model in args:
-        return torch.load(pthpath + model + '.pth')        
+def plot_spectrum(title, DOA_train, prediction):
+    with plt.style.context(['science']):
+        DOA_plot = np.arange(r2)
+        for i in DOA_plot:
+            plt.rcParams['figure.dpi'] = 300
+            plt.size = (20,20)
+            x = np.arange(-60,60)
+            y = prediction[i, :]
+            plt.figure()
+            plt.title(title)
+            plt.xlabel('DOA(°)')
+            plt.ylabel('Spectrum')
+            plt.plot(x, y)
+            plt.plot(DOA_train[:,i],np.ones((2,)),'rD')
+            plt.savefig(figpath + 'Spectrum/' + str(title) + str(i)+'.pdf')
+            plt.show()
         
